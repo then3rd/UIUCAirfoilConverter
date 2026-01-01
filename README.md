@@ -156,7 +156,7 @@ If coordinates don't import correctly:
 
 ## License
 
-MIT License - See LICENSE file for details
+The Happy Bunny License (Modified MIT License) - See LICENSE file for details
 
 ## Contributing
 
