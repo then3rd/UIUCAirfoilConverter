@@ -54,14 +54,18 @@ def find_separator_by_x_coordinate(data_lines, start_idx):  # noqa: C901
                 # Check for sign change in direction
                 if prev_diff * next_diff < 0:  # Direction reversal
                     logger.info(f"Separator detected at index {i}: x={x_coords[i]:.6f}")
-                    return valid_indices[i + 1]
+
+                    # Return the index itself so leading edge is included in lower surface
+                    return valid_indices[i]
     # Alternative: find the minimum x value (leading edge) as separator
     min_x_idx = x_coords.index(min(x_coords))
     if 0 < min_x_idx < len(x_coords) - 1:  # Not at the start or end
         logger.info(
             f"Separator detected at minimum x: index {min_x_idx}, x={x_coords[min_x_idx]:.6f}"
         )
-        return valid_indices[min_x_idx + 1]
+
+        # Return the index itself so leading edge is included in lower surface
+        return valid_indices[min_x_idx]
     return None
 
 
@@ -138,11 +142,18 @@ def convert_airfoil_data_to_csv(data_str: str, scale: int, *, include_header: bo
             )
             return "", ""
     # Split into upper and lower profiles
-    upper_lines = data_lines[start_idx:separator_idx]
+    # Include the separator point in upper surface (leading/trailing edge should be in both)
+    upper_lines = data_lines[start_idx : separator_idx + 1]
+
     # Find the start of lower profile data (skip empty lines)
-    lower_start = separator_idx + 1
-    while lower_start < len(data_lines) and not data_lines[lower_start].strip():
+
+    lower_start = separator_idx
+    # If separator was a blank line, skip it
+    if lower_start < len(data_lines) and not data_lines[lower_start].strip():
         lower_start += 1
+        while lower_start < len(data_lines) and not data_lines[lower_start].strip():
+            lower_start += 1
+
     lower_lines = data_lines[lower_start:]
     # Parse coordinates for each profile
     upper_coords = parse_coordinates(upper_lines, scale)
